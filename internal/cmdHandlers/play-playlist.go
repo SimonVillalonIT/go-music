@@ -14,7 +14,7 @@ import (
 )
 
 func PlayPlaylistHandler(cmd *cobra.Command, args []string) {
-	rawFile, err := os.ReadFile(viper.GetString("store"))
+	rawFile, err := os.ReadFile(viper.GetString(services.STORE_PATH))
 
 	if err != nil {
 		cobra.CheckErr(err)
@@ -45,7 +45,15 @@ func PlayPlaylistHandler(cmd *cobra.Command, args []string) {
 		cobra.CheckErr(err)
 	}
 
-	command := exec.Command("mpv", "--no-video", playlists[idx].URL)
+	var playlistPath string
+
+	if playlists[idx].DownloadPath != "" {
+		playlistPath = playlists[idx].DownloadPath
+	} else {
+		playlistPath = playlists[idx].URL
+	}
+
+	command := exec.Command("mpv", "--no-video", playlistPath)
 
 	// Set output to current console
 	command.Stdout = os.Stdout

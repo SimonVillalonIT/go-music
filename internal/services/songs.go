@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
+	"path"
 	"regexp"
 	"sync"
 
@@ -13,8 +15,9 @@ import (
 )
 
 type Song struct {
-	URL   string
-	Title string
+	URL          string
+	Title        string
+	DownloadPath string
 }
 
 func getSongsDetails(videoURL string) string {
@@ -107,9 +110,55 @@ func SaveSong(jsonFile JsonFile, newSong Song) error {
 		return err
 	}
 
-	err = os.WriteFile(viper.GetString("store"), updatedJson, 0644)
+	err = os.WriteFile(viper.GetString(STORE_PATH), updatedJson, 0644)
 
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DownloadSong(jsonFile *JsonFile, song Song) error {
+	found := false
+	songPath := path.Join(viper.GetString(DOWNLOADS_FOLDER), song.Title)
+
+	for i, currentSong := range jsonFile.Songs {
+		if song.Title == currentSong.Title {
+			jsonFile.Songs[i] = song
+			jsonFile.Songs[i].DownloadPath = songPath + ".mp3"
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("song with title %q not found", song.Title)
+	}
+
+	updatedData, err := json.MarshalIndent(jsonFile, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	command := exec.Command("yt-dlp",
+		"--extract-audio",
+		"--audio-format", "mp3",
+		"--output", songPath,
+		"--playlist-start", "1",
+		"--playlist-end", "10",
+		song.URL,
+	)
+
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+
+	// Run the command
+	if err := command.Run(); err != nil {
+		return err
+	}
+	// Write the updated JSON data back to the file
+	if err := os.WriteFile(viper.GetString(STORE_PATH), updatedData, 0644); err != nil {
 		return err
 	}
 

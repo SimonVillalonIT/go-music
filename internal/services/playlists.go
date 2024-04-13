@@ -2,18 +2,22 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
+	"path"
 	"regexp"
 
 	"github.com/spf13/viper"
 )
 
 type Playlist struct {
-	Title   string
-	URL     string
-	Content []string
+	Title        string
+	URL          string
+	Content      []string
+	DownloadPath string
 }
 
 func getPlaylistDetails(url string) (string, []string) {
@@ -112,9 +116,60 @@ func SavePlaylist(jsonFile JsonFile, newPlaylist Playlist) error {
 		return err
 	}
 
-	err = os.WriteFile(viper.GetString("store"), updatedJson, 0644)
+	err = os.WriteFile(viper.GetString(STORE_PATH), updatedJson, 0644)
 
 	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DownloadPlaylist(jsonFile *JsonFile, playlist Playlist) error {
+	found := false
+	playlistPath := path.Join(viper.GetString(DOWNLOADS_FOLDER), playlist.Title)
+	err := os.Mkdir(playlistPath, 0700)
+
+	if err != nil {
+		return err
+	}
+
+	for i, currentPlaylist := range jsonFile.Playlists {
+		if playlist.Title == currentPlaylist.Title {
+			jsonFile.Playlists[i] = playlist
+			jsonFile.Playlists[i].DownloadPath = playlistPath
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("playlist with title %q not found", playlist.Title)
+	}
+
+	updatedData, err := json.MarshalIndent(jsonFile, "", "    ")
+	if err != nil {
+		return err
+	}
+
+	command := exec.Command("yt-dlp",
+		"--extract-audio",
+		"--audio-format", "mp3",
+		"--output", path.Join(playlistPath, "%(title)s.%(ext)s"),
+		"--playlist-start", "1",
+		"--playlist-end", "10",
+		playlist.URL,
+	)
+
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+
+	// Run the command
+	if err := command.Run(); err != nil {
+		return err
+	}
+	// Write the updated JSON data back to the file
+	if err := os.WriteFile(viper.GetString(STORE_PATH), updatedData, 0644); err != nil {
 		return err
 	}
 

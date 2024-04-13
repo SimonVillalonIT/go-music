@@ -13,7 +13,7 @@ import (
 )
 
 func PlaySongHandler(cmd *cobra.Command, args []string) {
-	rawFile, err := os.ReadFile(viper.GetString("store"))
+	rawFile, err := os.ReadFile(viper.GetString(services.STORE_PATH))
 
 	if err != nil {
 		cobra.CheckErr(err)
@@ -22,6 +22,9 @@ func PlaySongHandler(cmd *cobra.Command, args []string) {
 	var jsonFile services.JsonFile
 
 	err = json.Unmarshal(rawFile, &jsonFile)
+	if err != nil {
+		cobra.CheckErr(err)
+	}
 
 	songs := jsonFile.Songs
 
@@ -44,7 +47,16 @@ func PlaySongHandler(cmd *cobra.Command, args []string) {
 		cobra.CheckErr(err)
 	}
 
-	command := exec.Command("mpv", "--no-video", songs[idx].URL)
+	var songPath string
+
+	if songs[idx].DownloadPath != "" {
+		songPath = songs[idx].DownloadPath
+		fmt.Println(songPath)
+	} else {
+		songPath = songs[idx].URL
+	}
+
+	command := exec.Command("mpv", "--no-video", songPath)
 
 	// Set output to current console
 	command.Stdout = os.Stdout

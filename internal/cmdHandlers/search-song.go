@@ -56,7 +56,7 @@ func SearchSongHandler(cmd *cobra.Command, args []string) {
 		cobra.CheckErr(err)
 	}
 
-	rawFile, err := os.ReadFile(viper.GetString("store"))
+	rawFile, err := os.ReadFile(viper.GetString(services.STORE_PATH))
 
 	if err != nil {
 		cobra.CheckErr(err)

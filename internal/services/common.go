@@ -5,6 +5,11 @@ import (
 	"strings"
 )
 
+const (
+	DOWNLOADS_FOLDER = "downloadsFolder"
+	STORE_PATH       = "storePath"
+)
+
 type JsonFile struct {
 	Songs     []Song
 	Playlists []Playlist
