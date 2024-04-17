@@ -1,17 +1,16 @@
-package song
+package search
 
 import (
 	cmdhandlers "github.com/SimonVillalonIT/music-golang/internal/cmdHandlers"
 	"github.com/spf13/cobra"
 )
 
-// searchCmd represents the search command
-var searchCmd = &cobra.Command{
-	Use:   "search",
-	Short: "Search for a video",
+var songCmd = &cobra.Command{
+	Use:   "songs",
+	Short: "Search for songs",
 	Run:   cmdhandlers.SearchSongHandler,
 }
 
 func init() {
-	songCmd.AddCommand(searchCmd)
+	searchCmd.AddCommand(songCmd)
 }

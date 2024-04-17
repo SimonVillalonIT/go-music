@@ -1,36 +1,24 @@
 package services
 
 import (
-	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"os/exec"
-	"path"
 	"regexp"
 
-	"github.com/spf13/viper"
+	"github.com/google/uuid"
 )
 
-type Playlist struct {
-	Title        string
-	URL          string
-	Content      []string
-	DownloadPath string
-}
-
-func getPlaylistDetails(url string) (string, []string) {
+func getPlaylistDetails(url string) (string, string, []string) {
 	var content []string
 	resp, err := http.Get(url)
 	if err != nil {
-		return "", content
+		return "", "", content
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return "", content
+		return "", "", content
 	}
 
 	bodyString := string(bodyBytes)
@@ -57,11 +45,25 @@ func getPlaylistDetails(url string) (string, []string) {
 		playlistName = nameMatch[1]
 	}
 
-	return playlistName, content
+	ownerPattern := `\"ownerText\":\{\"runs\":\[\{\"text\":\"([^\"]+)\"`
+
+	// Compile the regex pattern
+	ownerRegex := regexp.MustCompile(ownerPattern)
+
+	// Find the matches
+	ownerMatches := ownerRegex.FindStringSubmatch(bodyString)
+
+	var videoOwner string
+
+	if len(ownerMatches) >= 2 {
+		videoOwner = ownerMatches[1]
+	}
+
+	return playlistName, videoOwner, content
 }
 
-func GetPlaylists(keyword string, limit int) ([]Playlist, error) {
-	var results []Playlist
+func GetPlaylists(keyword string, limit int) ([]Item, error) {
+	var results []Item
 	keyword = ClearStringForSearchQuery(keyword)
 	resp, err := http.Get("https://www.youtube.com/results?search_query=" + keyword + "&sp=EgIQAw%253D%253D")
 	if err != nil {
@@ -99,79 +101,11 @@ func GetPlaylists(keyword string, limit int) ([]Playlist, error) {
 			uniqueIDs[playlistID] = true
 			url := "https://www.youtube.com/playlist?list=" + playlistID
 			// Fetch playlist details
-			title, content := getPlaylistDetails(url)
-			newPlaylist := Playlist{Title: title, URL: url, Content: content}
+			title, owner, content := getPlaylistDetails(url)
+			newPlaylist := Item{ID: uuid.NewString(), Name: title, URL: url, Owner: owner, Content: content}
 			results = append(results, newPlaylist)
 		}
 		counter++
 	}
 	return results, err
-}
-
-func SavePlaylist(jsonFile JsonFile, newPlaylist Playlist) error {
-	jsonFile.Playlists = append(jsonFile.Playlists, newPlaylist)
-
-	updatedJson, err := json.MarshalIndent(jsonFile, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(viper.GetString(STORE_PATH), updatedJson, 0644)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DownloadPlaylist(jsonFile *JsonFile, playlist Playlist) error {
-	found := false
-	playlistPath := path.Join(viper.GetString(DOWNLOADS_FOLDER), playlist.Title)
-	err := os.Mkdir(playlistPath, 0700)
-
-	if err != nil {
-		return err
-	}
-
-	for i, currentPlaylist := range jsonFile.Playlists {
-		if playlist.Title == currentPlaylist.Title {
-			jsonFile.Playlists[i] = playlist
-			jsonFile.Playlists[i].DownloadPath = playlistPath
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return fmt.Errorf("playlist with title %q not found", playlist.Title)
-	}
-
-	updatedData, err := json.MarshalIndent(jsonFile, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	command := exec.Command("yt-dlp",
-		"--extract-audio",
-		"--audio-format", "mp3",
-		"--output", path.Join(playlistPath, "%(title)s.%(ext)s"),
-		"--playlist-start", "1",
-		"--playlist-end", "10",
-		playlist.URL,
-	)
-
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-
-	// Run the command
-	if err := command.Run(); err != nil {
-		return err
-	}
-	// Write the updated JSON data back to the file
-	if err := os.WriteFile(viper.GetString(STORE_PATH), updatedData, 0644); err != nil {
-		return err
-	}
-
-	return nil
 }

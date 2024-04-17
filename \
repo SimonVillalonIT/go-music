@@ -1,0 +1,194 @@
+package tui
+
+import (
+	"encoding/json"
+	"log"
+	"os"
+	"slices"
+	"strings"
+
+	"github.com/SimonVillalonIT/music-golang/internal/services"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
+	"github.com/spf13/viper"
+)
+
+const (
+	normal   = 0
+	play     = 1
+	download = 2
+	search   = 3
+)
+
+var docStyle = lipgloss.NewStyle().Margin(1, 2)
+
+type SelectMsg struct {
+	ActiveProjectID uint
+}
+
+type Item struct {
+	ID          string
+	title, desc string
+	selected    bool
+}
+
+func (i Item) Title() string       { return i.title }
+func (i Item) Description() string { return i.desc }
+func (i Item) FilterValue() string { return i.ID }
+
+type Model struct {
+	err      error // Error, if any, encountered during loading
+	help     tea.Model
+	list     list.Model
+	mode     uint
+	jsonFile []services.Item
+	selected []string
+}
+
+func New() tea.Model {
+	jsonFile, items, err := searchSongs()
+	if err != nil {
+		log.Print(err)
+	}
+	listModel := list.New(items, list.NewDefaultDelegate(), 0, 0)
+	listModel.Title = "Your saved songs & playlists"
+	listModel.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			constants.Keymap.Enter,
+			constants.Keymap.Download,
+			constants.Keymap.Delete,
+			constants.Keymap.Space,
+		}
+	}
+	return Model{jsonFile: jsonFile, list: listModel, mode: 0}
+}
+
+func (m Model) Init() tea.Cmd {
+	return nil
+}
+
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+	switch msg := msg.(type) {
+	case tea.WindowSizeMsg:
+		h, v := docStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
+	case tea.KeyMsg:
+		if key.Matches(msg, constants.Keymap.Quit) {
+			cmds = append(cmds, tea.Quit)
+		}
+		if key.Matches(msg, constants.Keymap.Enter) {
+			if m.mode == normal {
+				services.Play(m.getSelectedItems()...)
+			}
+			if m.mode == download {
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Download) {
+			if m.mode == download {
+				m.mode = normal
+			}
+			if m.mode == normal {
+				m.mode = download
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Space) { // Check for spacebar press
+			isAlreadySelected := slices.Contains(m.selected, m.list.SelectedItem().(Item).ID)
+			if isAlreadySelected {
+				m.selected = m.unselectItem()
+			} else {
+				m.selected = m.selectItem()
+			}
+		}
+	}
+	m.list, cmd = m.list.Update(msg)
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
+}
+
+func (m Model) View() string {
+	if m.err != nil {
+		return m.err.Error()
+	}
+
+	mainList := docStyle.Render(m.list.View())
+
+	selectedList := m.renderSelectedList()
+
+	return mainList + " " + selectedList
+}
+
+func (m Model) renderSelectedList() string {
+	// If there are no selected items, return an empty string
+	if len(m.selected) == 0 {
+		return ""
+	}
+
+	var selectedItems []string
+
+	for _, item := range m.jsonFile {
+		if slices.Contains(m.selected, item.ID) {
+			selectedItems = append(selectedItems, item.Name)
+		}
+	}
+
+	selectedList := strings.Join(selectedItems, "\n")
+
+	return lipgloss.NewStyle().Margin(1, 2).Render(selectedList)
+}
+
+func searchSongs() ([]services.Item, []list.Item, error) {
+	rawFile, err := os.ReadFile(viper.GetString(services.STORE_PATH))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var jsonFile []services.Item
+
+	err = json.Unmarshal(rawFile, &jsonFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	items := make([]list.Item, len(jsonFile))
+
+	for i, song := range jsonFile {
+		items[i] = Item{title: song.Name, desc: song.Owner + " - Views: " + song.Views}
+	}
+
+	return jsonFile, items, nil
+}
+
+func (m Model) selectItem() []string {
+	itemID := m.list.SelectedItem().(Item).ID
+
+	log.Println("selected Item: %s", m.list.SelectedItem().(Item))
+
+	return append(m.selected, itemID)
+}
+
+func (m Model) unselectItem() []string {
+	itemID := m.list.SelectedItem().(Item).ID
+
+	log.Println("selected Item: %s", m.list.SelectedItem().(Item))
+
+	return slices.DeleteFunc(m.selected, func(e string) bool {
+		return itemID == e
+	})
+}
+
+func (m Model) getSelectedItems() []services.Item {
+	var selectedItems []services.Item
+
+	for _, item := range m.jsonFile {
+		if slices.Contains(m.selected, item.ID) {
+			selectedItems = append(selectedItems, item)
+		}
+	}
+
+	return selectedItems
+}

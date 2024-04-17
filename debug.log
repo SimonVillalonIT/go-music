@@ -1,0 +1,13 @@
+
+debug 2024/04/16 23:17:34 i entered here
+debug 2024/04/16 23:18:47 i entered here
+debug 2024/04/16 23:27:58 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:28:48 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:28:56 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:29:01 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:29:39 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:30:12 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:31:02 Connection is closed, attempting to start mpv
+debug 2024/04/16 23:31:06 Connection is closed, attempting to start mpv
+debug 2024/04/17 00:18:17 Failed to start mpv: exit status 4
+debug 2024/04/17 00:51:43 Failed to start mpv: exit status 4

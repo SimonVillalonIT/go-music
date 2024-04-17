@@ -1,17 +1,16 @@
-package song
+package cmd
 
 import (
 	cmdhandlers "github.com/SimonVillalonIT/music-golang/internal/cmdHandlers"
 	"github.com/spf13/cobra"
 )
 
-// searchCmd represents the search command
 var downloadCmd = &cobra.Command{
 	Use:   "download",
-	Short: "Download a song",
-	Run:   cmdhandlers.DownloadSongHandler,
+	Short: "Download any stored song or playlist",
+	Run:   cmdhandlers.DownloadHandler,
 }
 
 func init() {
-	songCmd.AddCommand(downloadCmd)
+	RootCmd.AddCommand(downloadCmd)
 }

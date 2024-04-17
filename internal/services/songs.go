@@ -1,54 +1,41 @@
 package services
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"os"
-	"os/exec"
-	"path"
+
 	"regexp"
 	"sync"
 
-	"github.com/spf13/viper"
+	"github.com/google/uuid"
 )
 
-type Song struct {
-	URL          string
-	Title        string
-	DownloadPath string
-}
-
-func getSongsDetails(videoURL string) string {
+func getSongsDetails(videoURL string) (string, string, string) {
 	resp, err := http.Get(videoURL)
 	if err != nil {
-		return ""
+		return "", "", ""
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return ""
+		return "", "", ""
 	}
 
 	bodyString := string(bodyBytes)
 
-	namePattern := `<title>(.*?) - YouTube<\/title>`
-	regex := regexp.MustCompile(namePattern)
-	match := regex.FindStringSubmatch(bodyString)
+	videoTitle := GetFromRegex(bodyString, `<title>(.*?) - YouTube<\/title>`)
 
-	var videoTitle string
+	videoOwner := GetFromRegex(bodyString, `"author":"([^"]+)"`)
 
-	if len(match) >= 2 {
-		videoTitle = match[1]
-	}
+	videoViews := GetFromRegex(bodyString, `"viewCount":{"simpleText":"([^"]+)"}`)
 
-	return videoTitle
+	return videoTitle, videoOwner, videoViews
 }
 
-func GetSongs(keyword string, limit int) ([]Song, error) {
-	var result []Song
+func GetSongs(keyword string, limit int) ([]Item, error) {
+	var result []Item
 	search := "https://www.youtube.com/results?search_query=" + ClearStringForSearchQuery(keyword) + "&sp=EgIQAQ%253D%253D"
 	resp, err := http.Get(search)
 	if err != nil {
@@ -87,9 +74,9 @@ func GetSongs(keyword string, limit int) ([]Song, error) {
 			wg.Add(1)
 			go func(url string) {
 				defer wg.Done()
-				title := getSongsDetails(url)
+				title, owner, views := getSongsDetails(url)
 
-				result = append(result, Song{URL: url, Title: title})
+				result = append(result, Item{ID: uuid.NewString(), URL: url, Name: title, Owner: owner, Views: views})
 			}(videoURL)
 			counter++
 		}
@@ -99,68 +86,4 @@ func GetSongs(keyword string, limit int) ([]Song, error) {
 	wg.Wait()
 
 	return result, nil
-}
-
-func SaveSong(jsonFile JsonFile, newSong Song) error {
-	jsonFile.Songs = append(jsonFile.Songs, newSong)
-
-	updatedJson, err := json.MarshalIndent(jsonFile, "", "    ")
-
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(viper.GetString(STORE_PATH), updatedJson, 0644)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func DownloadSong(jsonFile *JsonFile, song Song) error {
-	found := false
-	songPath := path.Join(viper.GetString(DOWNLOADS_FOLDER), song.Title)
-
-	for i, currentSong := range jsonFile.Songs {
-		if song.Title == currentSong.Title {
-			jsonFile.Songs[i] = song
-			jsonFile.Songs[i].DownloadPath = songPath + ".mp3"
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return fmt.Errorf("song with title %q not found", song.Title)
-	}
-
-	updatedData, err := json.MarshalIndent(jsonFile, "", "    ")
-	if err != nil {
-		return err
-	}
-
-	command := exec.Command("yt-dlp",
-		"--extract-audio",
-		"--audio-format", "mp3",
-		"--output", songPath,
-		"--playlist-start", "1",
-		"--playlist-end", "10",
-		song.URL,
-	)
-
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-
-	// Run the command
-	if err := command.Run(); err != nil {
-		return err
-	}
-	// Write the updated JSON data back to the file
-	if err := os.WriteFile(viper.GetString(STORE_PATH), updatedData, 0644); err != nil {
-		return err
-	}
-
-	return nil
 }
