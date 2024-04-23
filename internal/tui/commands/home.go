@@ -74,7 +74,7 @@ func ConnCmd() tea.Msg {
 
 	err := conn.Open()
 
-	if conn.IsClosed() {
+	if conn.IsClosed() || conn == nil {
 		return ConnErr(err)
 	}
 
@@ -84,7 +84,6 @@ func ConnCmd() tea.Msg {
 func PlayCmd(conn mpvipc.Connection, item services.Item) tea.Cmd {
 	return func() tea.Msg {
 		err := services.Play(conn, item)
-
 		if err != nil {
 			return ErrMsg(err)
 		}
@@ -92,6 +91,6 @@ func PlayCmd(conn mpvipc.Connection, item services.Item) tea.Cmd {
 	}
 }
 
-func kill() {
+func Kill() {
 	exec.Command("killall", "mpv").Run()
 }

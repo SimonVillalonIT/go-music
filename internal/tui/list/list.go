@@ -149,5 +149,9 @@ func (m Model) View() string {
 }
 
 func (m Model) SelectedItem() list.Item {
-    return m.list.SelectedItem()
+	return m.list.SelectedItem()
+}
+
+func (m *Model) SetSize(w, h int) {
+	m.list.SetSize(w, h)
 }
