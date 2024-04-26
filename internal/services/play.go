@@ -8,7 +8,7 @@ import (
 	"github.com/DexterLB/mpvipc"
 )
 
-func Play(conn mpvipc.Connection, items ...Item) error {
+func Play(conn *mpvipc.Connection, items ...Item) error {
 	playlistFile, err := os.CreateTemp("", "playlist*.txt")
 	if err != nil {
 		return err

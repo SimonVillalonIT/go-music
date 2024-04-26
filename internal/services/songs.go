@@ -7,8 +7,6 @@ import (
 
 	"regexp"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 func getSongsDetails(videoURL string) (string, string, string) {
@@ -76,7 +74,7 @@ func GetSongs(keyword string, limit int) ([]Item, error) {
 				defer wg.Done()
 				title, owner, views := getSongsDetails(url)
 
-				result = append(result, Item{ID: uuid.NewString(), URL: url, Name: title, Owner: owner, Views: views})
+				result = append(result, Item{URL: url, Name: title, Owner: owner, Views: views})
 			}(videoURL)
 			counter++
 		}

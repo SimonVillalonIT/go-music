@@ -1,28 +1,64 @@
 package cmds
 
 import (
-	"log"
-
 	"github.com/DexterLB/mpvipc"
+	"github.com/SimonVillalonIT/music-golang/internal/services"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func ObserveTrack(conn *mpvipc.Connection) tea.Cmd {
+type Playlist struct {
+	CurrentTrack Track
+	Position     float64
+	Length       float64
+}
+
+type Track struct {
+	Name         string
+	Duration     float64
+	CurrentFrame float64
+}
+
+func PlayCmd(conn *mpvipc.Connection, item services.Item) tea.Cmd {
 	return func() tea.Msg {
-		if conn == nil {
-			return RetryMsg("retry")
-		}
-		result, err := conn.Call("get_property_string", "filename")
+		err := services.Play(conn, item)
 		if err != nil {
-			return RetryMsg("retry")
+			return ErrMsg(err)
 		}
-		if result == nil {
-			return RetryMsg("retry")
-		}
-		log.Print(result)
-		return EventMsg(result.(string))
+		return nil
 	}
 }
 
-type EventMsg string
-type RetryMsg string
+func PauseCmd(conn *mpvipc.Connection) tea.Cmd {
+	return func() tea.Msg {
+		val, err := conn.Get("pause")
+
+		if err != nil {
+			return ErrMsg(err)
+		}
+		err = conn.Set("pause", !val.(bool))
+		if err != nil {
+			return ErrMsg(err)
+		}
+		return nil
+	}
+}
+
+func DecreaseCmd(conn *mpvipc.Connection) tea.Cmd {
+	return func() tea.Msg {
+		_, err := conn.Call("osd-auto", "add", "volume", -2)
+		if err != nil {
+			return ErrMsg(err)
+		}
+		return nil
+	}
+}
+
+func IncreaseCmd(conn *mpvipc.Connection) tea.Cmd {
+	return func() tea.Msg {
+		_, err := conn.Call("osd-auto", "add", "volume", 2)
+		if err != nil {
+			return ErrMsg(err)
+		}
+		return nil
+	}
+}

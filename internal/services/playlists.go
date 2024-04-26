@@ -4,8 +4,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-
-	"github.com/google/uuid"
 )
 
 func getPlaylistDetails(url string) (string, string, []string) {
@@ -102,7 +100,7 @@ func GetPlaylists(keyword string, limit int) ([]Item, error) {
 			url := "https://www.youtube.com/playlist?list=" + playlistID
 			// Fetch playlist details
 			title, owner, content := getPlaylistDetails(url)
-			newPlaylist := Item{ID: uuid.NewString(), Name: title, URL: url, Owner: owner, Content: content}
+			newPlaylist := Item{Name: title, URL: url, Owner: owner, Content: content}
 			results = append(results, newPlaylist)
 		}
 		counter++

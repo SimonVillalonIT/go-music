@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	appStyle = lipgloss.NewStyle().Padding(1, 2)
+	appStyle = lipgloss.NewStyle()
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFDF5")).
@@ -74,6 +74,7 @@ func NewModel(items []list.Item) Model {
 	musicList := list.New(items, delegate, 0, 0)
 	musicList.Title = "Songs & Playlists"
 	musicList.Styles.Title = titleStyle
+	musicList.SetShowHelp(false)
 	musicList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.toggleSpinner,
@@ -105,7 +106,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 
 	case tea.KeyMsg:
-		// Don't match any of the keys below if we're actively filtering.
 		if m.list.FilterState() == list.Filtering {
 			break
 		}

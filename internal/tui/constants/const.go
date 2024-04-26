@@ -38,6 +38,10 @@ type keymap struct {
 	Delete   key.Binding
 	Back     key.Binding
 	Quit     key.Binding
+	Next     key.Binding
+	Prev     key.Binding
+	Minus    key.Binding
+	Plus     key.Binding
 }
 
 // Keymap reusable key mappings shared across models
@@ -69,5 +73,21 @@ var Keymap = keymap{
 	Space: key.NewBinding(
 		key.WithKeys(" "),
 		key.WithHelp("space", "select"),
+	),
+	Prev: key.NewBinding(
+		key.WithKeys("p"),
+		key.WithHelp("p", "prev"),
+	),
+	Next: key.NewBinding(
+		key.WithKeys("n"),
+		key.WithHelp("n", "next"),
+	),
+	Minus: key.NewBinding(
+		key.WithKeys("-"),
+		key.WithHelp("-", "decrease"),
+	),
+	Plus: key.NewBinding(
+		key.WithKeys("+"),
+		key.WithHelp("+", "increase"),
 	),
 }

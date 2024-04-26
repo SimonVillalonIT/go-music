@@ -10,8 +10,7 @@ import (
 type sessionState int
 
 const (
-	MainView   sessionState = iota
-	HomeView   sessionState = 1
+	HomeView   sessionState = iota
 	ConfigView sessionState = 2
 )
 

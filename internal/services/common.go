@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"net/url"
 	"os"
 	"regexp"
@@ -15,7 +16,6 @@ const (
 )
 
 type Item struct {
-	ID           string
 	Name         string
 	URL          string
 	Owner        string
@@ -26,7 +26,7 @@ type Item struct {
 
 func (i Item) Title() string       { return i.Name }
 func (i Item) Description() string { return i.Owner + " -- " + i.Views }
-func (i Item) FilterValue() string { return i.ID }
+func (i Item) FilterValue() string { return i.Name }
 
 func ClearStringForSearchQuery(input string) string {
 	cleaned := strings.ReplaceAll(input, " ", "+")
@@ -60,4 +60,11 @@ func getItemPath(item Item) string {
 		return item.DownloadPath
 	}
 	return item.URL
+}
+
+func SecondsToHHMMSS(seconds float64) string {
+	minutes := int(seconds / 60)
+	seconds -= float64(minutes) * 60
+
+	return fmt.Sprintf("%02d:%02d", minutes, int(seconds))
 }

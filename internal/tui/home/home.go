@@ -4,28 +4,32 @@ import (
 	"log"
 
 	"github.com/DexterLB/mpvipc"
-	"github.com/SimonVillalonIT/music-golang/internal/services"
-	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
-	custom_list "github.com/SimonVillalonIT/music-golang/internal/tui/list"
-	fancyList "github.com/SimonVillalonIT/music-golang/internal/tui/list"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/player"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+
+	"github.com/SimonVillalonIT/music-golang/internal/services"
+	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	fancyList "github.com/SimonVillalonIT/music-golang/internal/tui/list"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/player"
+)
+
+type homeState uint
+
+const (
+
 )
 
 type Model struct {
-	list       fancyList.Model
-	player     player.Model
-	err        error
-	help       tea.Model
-	mode       uint
-	jsonFile   []services.Item
-	conn       mpvipc.Connection
-	width      int
-	height     int
-	playerShow bool
+	width       int
+	height      int
+	list        fancyList.Model
+	player      player.Model
+	err         error
+	jsonFile    []services.Item
+	conn        *mpvipc.Connection
+	isConnected bool
 }
 
 func New() tea.Model {
@@ -36,11 +40,11 @@ func New() tea.Model {
 
 	list := fancyList.NewModel(items)
 
-	return Model{list: list, jsonFile: jsonfile, playerShow: false}
+	return Model{list: list, jsonFile: jsonfile, isConnected: false}
 }
 
 func (m Model) Init() tea.Cmd {
-	return tea.Batch(cmds.StartMpv, cmds.ConnCmd)
+	return nil
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -51,55 +55,67 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.list.SetSize(m.width, m.height)
-	case cmds.ConnErr:
-		commands = append(commands, cmds.ConnCmd)
 	case cmds.ConnMsg:
-		m.conn = mpvipc.Connection(msg)
-		m.player = player.NewModel(&m.conn)
-		commands = append(commands, cmds.ObserveTrack(&m.conn))
-		m.playerShow = true
-	case cmds.MpvMsg:
-		if msg == true {
-			commands = append(commands, cmds.ConnCmd)
+		if msg != nil {
+			m.conn = msg
+			m.isConnected = true
 		}
 	case cmds.ErrMsg:
 		log.Print(msg)
 		m.err = msg
-
 	case tea.KeyMsg:
 		if key.Matches(msg, constants.Keymap.Quit) {
 			cmds.Kill()
 			return m, tea.Quit
 		}
 		if key.Matches(msg, constants.Keymap.Enter) {
-			if m.conn.IsClosed() {
-				commands = append(commands, cmds.ConnCmd)
-			} else {
+			if m.isConnected {
 				commands = append(commands, cmds.PlayCmd(m.conn, m.list.SelectedItem().(services.Item)))
 			}
 		}
+		if key.Matches(msg, constants.Keymap.Space) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.PauseCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Next) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.NextCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Prev) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.PrevCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Minus) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.DecreaseCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Plus) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.IncreaseCmd(m.conn))
+			}
+		}
 	}
-
 	updatedList, cmd := m.list.Update(msg)
-	m.list = updatedList.(custom_list.Model)
-	commands = append(commands, cmd)
+	m.list = updatedList.(fancyList.Model)
 
-	if m.playerShow {
-		updatedPlayer, cmd := m.player.Update(msg)
-		m.player = updatedPlayer.(player.Model)
-		commands = append(commands, cmd)
-	}
+	updatedPlayer, cmd := m.player.Update(msg)
+	m.player = updatedPlayer.(player.Model)
+	commands = append(commands, cmd)
 
 	return m, tea.Batch(commands...)
 }
 
 func (m Model) View() string {
-	var view string
 	list := m.list.View()
-	if m.conn.IsClosed() {
-		return list
-	} else {
-		view = lipgloss.Place(m.width, m.height, 0, 0, lipgloss.JoinVertical(lipgloss.Left, list, m.player.View()))
+	if !m.isConnected {
+		return "Loading..."
 	}
-	return view
+	if m.conn.IsClosed() {
+		return "Loading..."
+	}
+	return lipgloss.Place(m.width, m.height, 0, 0, lipgloss.JoinVertical(lipgloss.Left, list, m.player.View()))
 }

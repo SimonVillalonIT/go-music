@@ -1,12 +1,11 @@
 package cmd
 
 import (
-	// "encoding/json"
 	"os"
-	// "path"
 
-	// "github.com/SimonVillalonIT/music-golang/internal/services"
+	"github.com/SimonVillalonIT/music-golang/internal/services"
 	"github.com/SimonVillalonIT/music-golang/internal/tui"
+	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -19,6 +18,11 @@ var RootCmd = &cobra.Command{
 	Short: "The music manager built in Golang",
 	Run: func(cmd *cobra.Command, args []string) {
 		p := tea.NewProgram(tui.NewMainModel(tui.HomeView), tea.WithAltScreen())
+
+		go services.StartMpv()
+
+		go cmds.SetupConnection(p)
+
 		if _, err := p.Run(); err != nil {
 			cobra.CheckErr(err)
 		}
