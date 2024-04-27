@@ -13,6 +13,7 @@ const (
 	DURATION
 	POSITION
 	LENGTH
+	PLAYLIST
 )
 
 func SetupConnection(p *tea.Program) {
@@ -50,6 +51,12 @@ func SetupConnection(p *tea.Program) {
 		log.Print(err)
 	}
 
+	_, err = conn.Call("observe_property", PLAYLIST, "playlist")
+
+	if err != nil {
+		log.Print(err)
+	}
+
 	p.Send(ConnMsg(conn))
 
 	events, stopListening := conn.NewEventListener()
@@ -73,6 +80,9 @@ func SetupConnection(p *tea.Program) {
 		}
 		if event.ID == LENGTH && event.Data != nil {
 			p.Send(PlaylistLengthMsg(event.Data.(float64)))
+		}
+		if event.ID == PLAYLIST && event.Data != nil {
+			p.Send(PlaylistInfoMsg(event.Data.([]interface{})))
 		}
 	}
 	stopListening <- struct{}{}

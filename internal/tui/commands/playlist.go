@@ -25,19 +25,12 @@ func NextCmd(conn *mpvipc.Connection) tea.Cmd {
 	}
 }
 
-//
-// func getPlaylistCmd(m *playlist.Model) tea.Msg {
-// 	result, err := m.Conn.Get("playlist")
-//
-// 	if err != nil {
-// 		return ErrMsg(err)
-// 	}
-//
-//     for _, result = m.Items
-//
-// 	if err != nil {
-// 		return ErrMsg(err)
-// 	}
-//
-// 	return nil
-// }
+func RemoveCmd(conn *mpvipc.Connection, index float64) tea.Cmd {
+	return func() tea.Msg {
+		_, err := conn.Call("osd-auto", "playlist-remove", index)
+		if err != nil {
+			return ErrMsg(err)
+		}
+		return nil
+	}
+}

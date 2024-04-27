@@ -7,6 +7,12 @@ import (
 )
 
 /* CONSTANTS */
+type SessionState uint
+
+const (
+	ListState = iota
+	PlaylistState
+)
 
 var (
 	// P the current tea program
@@ -35,17 +41,22 @@ type keymap struct {
 	Enter    key.Binding
 	Space    key.Binding
 	Rename   key.Binding
-	Delete   key.Binding
+	Remove   key.Binding
 	Back     key.Binding
 	Quit     key.Binding
 	Next     key.Binding
 	Prev     key.Binding
 	Minus    key.Binding
 	Plus     key.Binding
+	Move     key.Binding
 }
 
 // Keymap reusable key mappings shared across models
 var Keymap = keymap{
+	Move: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "move"),
+	),
 	Download: key.NewBinding(
 		key.WithKeys("g"),
 		key.WithHelp("g", "download"),
@@ -58,9 +69,9 @@ var Keymap = keymap{
 		key.WithKeys("r"),
 		key.WithHelp("r", "rename"),
 	),
-	Delete: key.NewBinding(
-		key.WithKeys("d"),
-		key.WithHelp("d", "delete"),
+	Remove: key.NewBinding(
+		key.WithKeys("x"),
+		key.WithHelp("x", "remove"),
 	),
 	Back: key.NewBinding(
 		key.WithKeys("esc"),

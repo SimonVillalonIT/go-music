@@ -9,5 +9,8 @@ type TrackCurrentFrameMsg float64
 type TrackDurationMsg float64
 type PlaylistPositionMsg float64
 type PlaylistLengthMsg float64
+type PlaylistInfoMsg []interface{}
+
+type StateMsg *uint
 
 type ErrMsg error
