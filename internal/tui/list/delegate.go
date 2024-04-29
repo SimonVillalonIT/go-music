@@ -1,7 +1,6 @@
 package custom_list
 
 import (
-	"github.com/SimonVillalonIT/music-golang/internal/services"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,19 +10,11 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
 	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
-		var title string
-
-		if i, ok := m.SelectedItem().(services.Item); ok {
-			title = i.Title()
-		} else {
-			return nil
-		}
-
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch {
 			case key.Matches(msg, keys.choose):
-				return m.NewStatusMessage(statusMessageStyle("Added to playlist " + title))
+				return m.NewStatusMessage(statusMessageStyle("Added to playlist"))
 
 			case key.Matches(msg, keys.remove):
 				index := m.Index()
@@ -31,7 +22,7 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 				if len(m.Items()) == 0 {
 					keys.remove.SetEnabled(false)
 				}
-				return m.NewStatusMessage(statusMessageStyle("Removed from playlist" + title))
+				return m.NewStatusMessage(statusMessageStyle("Removed from playlist"))
 			}
 		}
 
@@ -56,8 +47,6 @@ type delegateKeyMap struct {
 	remove key.Binding
 }
 
-// Additional short help entries. This satisfies the help.KeyMap interface and
-// is entirely optional.
 func (d delegateKeyMap) ShortHelp() []key.Binding {
 	return []key.Binding{
 		d.choose,
@@ -65,8 +54,6 @@ func (d delegateKeyMap) ShortHelp() []key.Binding {
 	}
 }
 
-// Additional full help entries. This satisfies the help.KeyMap interface and
-// is entirely optional.
 func (d delegateKeyMap) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{

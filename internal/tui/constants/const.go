@@ -12,6 +12,7 @@ type SessionState uint
 const (
 	ListState = iota
 	PlaylistState
+    SearchState
 )
 
 var (
@@ -40,6 +41,7 @@ type keymap struct {
 	Download key.Binding
 	Enter    key.Binding
 	Space    key.Binding
+    Search  key.Binding
 	Rename   key.Binding
 	Remove   key.Binding
 	Back     key.Binding
@@ -101,4 +103,8 @@ var Keymap = keymap{
 		key.WithKeys("+"),
 		key.WithHelp("+", "increase"),
 	),
+    Search: key.NewBinding(
+        key.WithKeys("s"),
+        key.WithHelp("s", "search"),
+    ),
 }

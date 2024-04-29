@@ -45,9 +45,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-    if m.Playlist.Length < 1 {
-        return "Start playing your songs"
-    }
+	if m.Playlist.Length < 1 {
+		return ""
+	}
 	data := fmt.Sprintf("Playing: %s   %s/%s | %.0f/%.0f", m.Playlist.CurrentTrack.Name, services.SecondsToHHMMSS(m.Playlist.CurrentTrack.CurrentFrame), services.SecondsToHHMMSS(m.Playlist.CurrentTrack.Duration), m.Playlist.Position, m.Playlist.Length)
 	return lipgloss.NewStyle().Foreground(lipgloss.Color("5")).Width(m.width).Render(lipgloss.JoinHorizontal(lipgloss.Left), data)
 }

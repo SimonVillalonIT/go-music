@@ -1,194 +1,186 @@
 package tui
 
 import (
-	"encoding/json"
 	"log"
-	"os"
-	"slices"
-	"strings"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	"github.com/DexterLB/mpvipc"
 	"github.com/charmbracelet/bubbles/key"
-	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spf13/viper"
+
+	"github.com/SimonVillalonIT/music-golang/internal/services"
+	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/download"
+	fancyList "github.com/SimonVillalonIT/music-golang/internal/tui/list"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/player"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/playlist"
 )
-
-const (
-	normal   = 0
-	play     = 1
-	download = 2
-	search   = 3
-)
-
-var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
-type SelectMsg struct {
-	ActiveProjectID uint
-}
-
-type Item struct {
-	ID          string
-	title, desc string
-	selected    bool
-}
-
-func (i Item) Title() string       { return i.title }
-func (i Item) Description() string { return i.desc }
-func (i Item) FilterValue() string { return i.ID }
 
 type Model struct {
-	err      error // Error, if any, encountered during loading
-	help     tea.Model
-	list     list.Model
-	mode     uint
-	jsonFile []services.Item
-	selected []string
+	state       constants.SessionState
+	width       int
+	height      int
+	list        fancyList.Model
+	player      player.Model
+	playlist    playlist.Model
+	search      search.Model
+	err         error
+	jsonFile    []services.Item
+	conn        *mpvipc.Connection
+	isConnected bool
 }
 
 func New() tea.Model {
-	jsonFile, items, err := searchSongs()
+	jsonfile, items, err := cmds.SearchSongs()
 	if err != nil {
 		log.Print(err)
 	}
-	listModel := list.New(items, list.NewDefaultDelegate(), 0, 0)
-	listModel.Title = "Your saved songs & playlists"
-	listModel.AdditionalShortHelpKeys = func() []key.Binding {
-		return []key.Binding{
-			constants.Keymap.Enter,
-			constants.Keymap.Download,
-			constants.Keymap.Delete,
-			constants.Keymap.Space,
-		}
-	}
-	return Model{jsonFile: jsonFile, list: listModel, mode: 0}
+
+	list := fancyList.NewModel(items)
+	player := player.NewModel()
+	playlist := playlist.NewModel()
+	search := search.New()
+
+	return Model{list: list, jsonFile: jsonfile, isConnected: false, player: player, playlist: playlist, search: search}
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return changeState((*uint)(&m.state))
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var commands []tea.Cmd
 	var cmd tea.Cmd
-	var cmds []tea.Cmd
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		h, v := docStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
+		m.width = msg.Width
+		m.height = msg.Height
+		m.list.SetSize(m.width, m.height)
+	case cmds.ConnMsg:
+		if msg != nil {
+			m.conn = msg
+			m.isConnected = true
+		}
+	case cmds.ErrMsg:
+		m.err = msg
 	case tea.KeyMsg:
+		if key.Matches(msg, constants.Keymap.Move) {
+			if m.state == constants.ListState && m.playlist.IsLoaded() {
+				m.state = constants.PlaylistState
+			} else {
+				m.state = constants.ListState
+			}
+			commands = append(commands, changeState((*uint)(&m.state)))
+		}
 		if key.Matches(msg, constants.Keymap.Quit) {
-			cmds = append(cmds, tea.Quit)
+			if m.state != constants.SearchState {
+				cmds.Kill()
+				return m, tea.Quit
+			} else {
+				m.state = constants.ListState
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Search) {
+			m.state = constants.SearchState
+		}
+		if key.Matches(msg, constants.Keymap.Remove) && m.state == constants.PlaylistState {
+			if m.isConnected {
+				commands = append(commands, cmds.RemoveCmd(m.conn, m.playlist.GetPosition()))
+			}
 		}
 		if key.Matches(msg, constants.Keymap.Enter) {
-			if m.mode == normal {
-				services.Play(m.getSelectedItems()...)
-			}
-			if m.mode == download {
-			}
-		}
-		if key.Matches(msg, constants.Keymap.Download) {
-			if m.mode == download {
-				m.mode = normal
-			}
-			if m.mode == normal {
-				m.mode = download
+			if m.isConnected {
+				if m.state == constants.ListState {
+					commands = append(commands, cmds.PlayCmd(m.conn, m.list.SelectedItem().(services.Item)))
+				}
+                if m.state == constants.SearchState {
+                    commands = append(commands, cmds.SearchCmd(m.search.Answer()))
+                }
 			}
 		}
-		if key.Matches(msg, constants.Keymap.Space) { // Check for spacebar press
-			isAlreadySelected := slices.Contains(m.selected, m.list.SelectedItem().(Item).ID)
-			if isAlreadySelected {
-				m.selected = m.unselectItem()
-			} else {
-				m.selected = m.selectItem()
+		if key.Matches(msg, constants.Keymap.Space) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.PauseCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Next) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.NextCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Prev) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.PrevCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Minus) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.DecreaseCmd(m.conn))
+			}
+		}
+		if key.Matches(msg, constants.Keymap.Plus) {
+			if m.player.Playlist.Length > 0 {
+				commands = append(commands, cmds.IncreaseCmd(m.conn))
 			}
 		}
 	}
-	m.list, cmd = m.list.Update(msg)
-	cmds = append(cmds, cmd)
-	return m, tea.Batch(cmds...)
+
+	if m.state == constants.SearchState {
+		updatedSearch, searchCmd := m.search.Update(msg)
+		m.search = updatedSearch.(search.Model)
+		commands = append(commands, searchCmd)
+	} else {
+		updatedPlayer, cmd := m.player.Update(msg)
+		m.player = updatedPlayer.(player.Model)
+
+		if m.state == constants.ListState {
+			updatedList, listCmd := m.list.Update(msg)
+			m.list = updatedList.(fancyList.Model)
+			commands = append(commands, listCmd)
+		}
+		updatedPlaylist, playlistCmd := m.playlist.Update(msg)
+		m.playlist = updatedPlaylist.(playlist.Model)
+
+		if m.state == constants.PlaylistState {
+			commands = append(commands, playlistCmd)
+		}
+
+		commands = append(commands, cmd)
+	}
+
+	commands = append(commands, cmd)
+	return m, tea.Batch(commands...)
 }
 
 func (m Model) View() string {
-	if m.err != nil {
-		return m.err.Error()
+	list := m.list.View()
+	playlist := m.playlist.View()
+	if !m.isConnected {
+		return "Loading..."
+	}
+	if m.conn.IsClosed() {
+		return "Loading..."
 	}
 
-	mainList := docStyle.Render(m.list.View())
+	if m.state == constants.SearchState {
+		return m.search.View()
+	}
 
-	selectedList := m.renderSelectedList()
+	if m.state == constants.ListState {
+		list = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(list)
+		playlist = lipgloss.NewStyle().Border(lipgloss.HiddenBorder()).Render(playlist)
+	} else {
+		playlist = lipgloss.NewStyle().Border(lipgloss.NormalBorder()).Render(playlist)
+		list = lipgloss.NewStyle().Border(lipgloss.HiddenBorder()).Render(list)
+	}
 
-	return mainList + " " + selectedList
+	main := lipgloss.JoinHorizontal(lipgloss.Left, list, playlist)
+	return lipgloss.Place(m.width, m.height, 0, 0, lipgloss.JoinVertical(lipgloss.Left, main, m.player.View()))
 }
 
-func (m Model) renderSelectedList() string {
-	// If there are no selected items, return an empty string
-	if len(m.selected) == 0 {
-		return ""
+func changeState(state *uint) tea.Cmd {
+	return func() tea.Msg {
+		return cmds.StateMsg(state)
 	}
-
-	var selectedItems []string
-
-	for _, item := range m.jsonFile {
-		if slices.Contains(m.selected, item.ID) {
-			selectedItems = append(selectedItems, item.Name)
-		}
-	}
-
-	selectedList := strings.Join(selectedItems, "\n")
-
-	return lipgloss.NewStyle().Margin(1, 2).Render(selectedList)
-}
-
-func searchSongs() ([]services.Item, []list.Item, error) {
-	rawFile, err := os.ReadFile(viper.GetString(services.STORE_PATH))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var jsonFile []services.Item
-
-	err = json.Unmarshal(rawFile, &jsonFile)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	items := make([]list.Item, len(jsonFile))
-
-	for i, song := range jsonFile {
-		items[i] = Item{title: song.Name, desc: song.Owner + " - Views: " + song.Views}
-	}
-
-	return jsonFile, items, nil
-}
-
-func (m Model) selectItem() []string {
-	itemID := m.list.SelectedItem().(Item).ID
-
-	log.Println("selected Item: %s", m.list.SelectedItem().(Item))
-
-	return append(m.selected, itemID)
-}
-
-func (m Model) unselectItem() []string {
-	itemID := m.list.SelectedItem().(Item).ID
-
-	log.Println("selected Item: %s", m.list.SelectedItem().(Item))
-
-	return slices.DeleteFunc(m.selected, func(e string) bool {
-		return itemID == e
-	})
-}
-
-func (m Model) getSelectedItems() []services.Item {
-	var selectedItems []services.Item
-
-	for _, item := range m.jsonFile {
-		if slices.Contains(m.selected, item.ID) {
-			selectedItems = append(selectedItems, item)
-		}
-	}
-
-	return selectedItems
 }

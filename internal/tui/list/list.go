@@ -1,6 +1,9 @@
 package custom_list
 
 import (
+	"log"
+	"math"
+
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -8,8 +11,6 @@ import (
 )
 
 var (
-	appStyle = lipgloss.NewStyle()
-
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#FFFDF5")).
 			Background(lipgloss.Color("#25A065")).
@@ -62,6 +63,8 @@ type Model struct {
 	list         list.Model
 	keys         *listKeyMap
 	delegateKeys *delegateKeyMap
+	width        int
+	height       int
 }
 
 func NewModel(items []list.Item) Model {
@@ -102,9 +105,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		h, v := appStyle.GetFrameSize()
-		m.list.SetSize(msg.Width-h, msg.Height-v)
-
+		log.Print("list size:%i, %i", msg.Width, msg.Height)
+		m.width = int(math.Round(float64(msg.Width) * 0.65))
+		m.height = int(math.Round(float64(msg.Height) * 0.8))
+		m.SetSize(m.width, m.height)
 	case tea.KeyMsg:
 		if m.list.FilterState() == list.Filtering {
 			break
@@ -144,7 +148,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	return appStyle.Render(m.list.View())
+	return lipgloss.NewStyle().Width(m.width).Height(m.height).Render((m.list.View()))
 }
 
 func (m Model) SelectedItem() list.Item {
@@ -153,4 +157,8 @@ func (m Model) SelectedItem() list.Item {
 
 func (m *Model) SetSize(w, h int) {
 	m.list.SetSize(w, h)
+}
+
+func (m *Model) SetItems(items []list.Item) {
+	m.list.SetItems(items)
 }

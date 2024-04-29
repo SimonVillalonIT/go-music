@@ -25,9 +25,19 @@ func NextCmd(conn *mpvipc.Connection) tea.Cmd {
 	}
 }
 
-func RemoveCmd(conn *mpvipc.Connection, index float64) tea.Cmd {
+func RemoveCmd(conn *mpvipc.Connection, position int) tea.Cmd {
 	return func() tea.Msg {
-		_, err := conn.Call("osd-auto", "playlist-remove", index)
+		_, err := conn.Call("osd-auto", "playlist-remove", position)
+		if err != nil {
+			return ErrMsg(err)
+		}
+		return nil
+	}
+}
+
+func PlayByPos(conn *mpvipc.Connection, position int) tea.Cmd {
+	return func() tea.Msg {
+		_, err := conn.Call("osd-auto", "playlist-play-index", position)
 		if err != nil {
 			return ErrMsg(err)
 		}
