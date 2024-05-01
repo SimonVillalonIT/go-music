@@ -2,12 +2,13 @@ package custom_list
 
 import (
 	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
+func newItemDelegate() list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
 	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
@@ -20,13 +21,13 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 			return m.NewStatusMessage(errorMessageStyle(string(msg)))
 		case tea.KeyMsg:
 			switch {
-			case key.Matches(msg, keys.choose):
+			case key.Matches(msg, constants.Keymap.Play):
 				return m.NewStatusMessage(statusMessageStyle("Added to playlist"))
-			case key.Matches(msg, keys.remove):
+			case key.Matches(msg, constants.Keymap.Remove):
 				index := m.Index()
 				m.RemoveItem(index)
 				if len(m.Items()) == 0 {
-					keys.remove.SetEnabled(false)
+					constants.Keymap.Remove.SetEnabled(false)
 				}
 				return m.NewStatusMessage(statusMessageStyle("Removed from playlist"))
 			}
@@ -35,49 +36,5 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 		return nil
 	}
 
-	help := []key.Binding{keys.choose, keys.remove}
-
-	d.ShortHelpFunc = func() []key.Binding {
-		return help
-	}
-
-	d.FullHelpFunc = func() [][]key.Binding {
-		return [][]key.Binding{help}
-	}
-
 	return d
-}
-
-type delegateKeyMap struct {
-	choose key.Binding
-	remove key.Binding
-}
-
-func (d delegateKeyMap) ShortHelp() []key.Binding {
-	return []key.Binding{
-		d.choose,
-		d.remove,
-	}
-}
-
-func (d delegateKeyMap) FullHelp() [][]key.Binding {
-	return [][]key.Binding{
-		{
-			d.choose,
-			d.remove,
-		},
-	}
-}
-
-func newDelegateKeyMap() *delegateKeyMap {
-	return &delegateKeyMap{
-		choose: key.NewBinding(
-			key.WithKeys("enter"),
-			key.WithHelp("enter", "choose"),
-		),
-		remove: key.NewBinding(
-			key.WithKeys("x", "backspace"),
-			key.WithHelp("x", "delete"),
-		),
-	}
 }

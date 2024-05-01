@@ -134,7 +134,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 	fmt.Fprint(w, fn(str))
 }
-func New() Model {
+func NewModel() Model {
 	styles := DefaultStyles()
 	answerField := textinput.New()
 	answerField.Focus()

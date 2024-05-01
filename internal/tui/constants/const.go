@@ -12,7 +12,7 @@ type SessionState uint
 const (
 	ListState = iota
 	PlaylistState
-    SearchState
+	SearchState
 )
 
 var (
@@ -37,24 +37,22 @@ var ErrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#bd534b")).Render
 // AlertStyle provides styling for alert messages
 var AlertStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("62")).Render
 
-type keymap struct {
+type KeymapType struct {
+	Play     key.Binding
+	Pause    key.Binding
+	Move     key.Binding
+	Search   key.Binding
 	Download key.Binding
-	Enter    key.Binding
-	Space    key.Binding
-    Search  key.Binding
-	Rename   key.Binding
 	Remove   key.Binding
-	Back     key.Binding
-	Quit     key.Binding
 	Next     key.Binding
 	Prev     key.Binding
 	Minus    key.Binding
 	Plus     key.Binding
-	Move     key.Binding
+	Quit     key.Binding
+	Help     key.Binding
 }
 
-// Keymap reusable key mappings shared across models
-var Keymap = keymap{
+var Keymap = KeymapType{
 	Move: key.NewBinding(
 		key.WithKeys("tab"),
 		key.WithHelp("tab", "move"),
@@ -63,29 +61,21 @@ var Keymap = keymap{
 		key.WithKeys("g"),
 		key.WithHelp("g", "download"),
 	),
-	Enter: key.NewBinding(
+	Play: key.NewBinding(
 		key.WithKeys("enter"),
-		key.WithHelp("enter", "exec"),
-	),
-	Rename: key.NewBinding(
-		key.WithKeys("r"),
-		key.WithHelp("r", "rename"),
+		key.WithHelp("enter", "play"),
 	),
 	Remove: key.NewBinding(
 		key.WithKeys("x"),
 		key.WithHelp("x", "remove"),
 	),
-	Back: key.NewBinding(
-		key.WithKeys("esc"),
-		key.WithHelp("esc", "back"),
-	),
 	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q"),
+		key.WithKeys("ctrl+c", "q", "esc"),
 		key.WithHelp("ctrl+c/q", "quit"),
 	),
-	Space: key.NewBinding(
+	Pause: key.NewBinding(
 		key.WithKeys(" "),
-		key.WithHelp("space", "select"),
+		key.WithHelp("space", "pause"),
 	),
 	Prev: key.NewBinding(
 		key.WithKeys("p"),
@@ -103,8 +93,27 @@ var Keymap = keymap{
 		key.WithKeys("+"),
 		key.WithHelp("+", "increase"),
 	),
-    Search: key.NewBinding(
-        key.WithKeys("s"),
-        key.WithHelp("s", "search"),
-    ),
+	Search: key.NewBinding(
+		key.WithKeys("s"),
+		key.WithHelp("s", "search"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "toggle help"),
+	),
+}
+
+func (k KeymapType) ShortHelp() []key.Binding {
+	return []key.Binding{k.Quit}
+}
+
+func (k KeymapType) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Play, k.Pause},
+		{k.Next, k.Prev},
+		{k.Download, k.Search}, // second column
+		{k.Plus, k.Minus},
+		{k.Move, k.Remove},
+		{k.Quit, k.Help},
+	}
 }

@@ -2,6 +2,7 @@ package tui
 
 import (
 	"github.com/DexterLB/mpvipc"
+	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -9,10 +10,10 @@ import (
 	"github.com/SimonVillalonIT/music-golang/internal/services"
 	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
 	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/search"
 	fancyList "github.com/SimonVillalonIT/music-golang/internal/tui/list"
 	"github.com/SimonVillalonIT/music-golang/internal/tui/player"
 	"github.com/SimonVillalonIT/music-golang/internal/tui/playlist"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/search"
 )
 
 type Model struct {
@@ -22,12 +23,14 @@ type Model struct {
 	list            fancyList.Model
 	player          player.Model
 	playlist        playlist.Model
+	help            help.Model
 	search          search.Model
 	err             error
 	jsonFile        []services.Item
 	conn            *mpvipc.Connection
 	isConnected     bool
 	downloadLoading bool
+	showHelp        bool
 }
 
 func New() tea.Model {
@@ -36,9 +39,10 @@ func New() tea.Model {
 	list := fancyList.NewModel(items)
 	player := player.NewModel()
 	playlist := playlist.NewModel()
-	search := search.New()
+	search := search.NewModel()
+	help := help.New()
 
-	return Model{list: list, jsonFile: jsonfile, isConnected: false, player: player, playlist: playlist, search: search, downloadLoading: false}
+	return Model{list: list, jsonFile: jsonfile, isConnected: false, player: player, playlist: playlist, search: search, downloadLoading: false, help: help, showHelp: true}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -65,9 +69,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.list.StopSpinner()
 	case cmds.SearchSuccessMsg:
 		m.updateData()
-    case cmds.QuitSearchMsg:
-        m.state = constants.ListState
+	case cmds.QuitSearchMsg:
+		m.state = constants.ListState
 	case tea.KeyMsg:
+		if key.Matches(msg, constants.Keymap.Help) {
+			m.showHelp = !m.showHelp
+		}
 		if key.Matches(msg, constants.Keymap.Download) {
 			if m.state == constants.ListState {
 				m.list.StartSpinner()
@@ -96,7 +103,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				commands = append(commands, cmds.RemoveCmd(m.conn, m.playlist.GetPosition()))
 			}
 		}
-		if key.Matches(msg, constants.Keymap.Enter) {
+		if key.Matches(msg, constants.Keymap.Play) {
 			if m.isConnected {
 				if m.state == constants.ListState {
 					commands = append(commands, cmds.PlayCmd(m.conn, m.list.SelectedItem().(services.Item)))
@@ -112,7 +119,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
-		if key.Matches(msg, constants.Keymap.Space) {
+		if key.Matches(msg, constants.Keymap.Pause) {
 			if m.player.Playlist.Length > 0 {
 				commands = append(commands, cmds.PauseCmd(m.conn))
 			}
@@ -162,6 +169,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		commands = append(commands, cmd)
 	}
 
+	m.help, cmd = m.help.Update(msg)
+
 	commands = append(commands, cmd)
 	return m, tea.Batch(commands...)
 }
@@ -191,7 +200,14 @@ func (m Model) View() string {
 
 	main := lipgloss.JoinHorizontal(lipgloss.Left, list, playlist)
 
-	return lipgloss.Place(m.width, m.height, 0, 0, lipgloss.JoinVertical(lipgloss.Left, main, m.player.View()))
+	page := lipgloss.JoinVertical(lipgloss.Left, main, m.player.View())
+	pageWithHelp := lipgloss.JoinVertical(lipgloss.Left, main, m.player.View(), m.help.FullHelpView(constants.Keymap.FullHelp()))
+
+	if m.showHelp {
+		return lipgloss.Place(m.width, m.height, 0, 0, pageWithHelp)
+	}
+
+	return lipgloss.Place(m.width, m.height, 0, 0, page)
 }
 
 func changeState(state *uint) tea.Cmd {
