@@ -1,6 +1,7 @@
 package custom_list
 
 import (
+	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,11 +12,16 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 
 	d.UpdateFunc = func(msg tea.Msg, m *list.Model) tea.Cmd {
 		switch msg := msg.(type) {
+		case cmds.DownloadSuccessMsg:
+			m.StopSpinner()
+			return m.NewStatusMessage(statusMessageStyle("Downloaded successfully"))
+		case cmds.DownloadErrorMsg:
+			m.StopSpinner()
+			return m.NewStatusMessage(errorMessageStyle(string(msg)))
 		case tea.KeyMsg:
 			switch {
 			case key.Matches(msg, keys.choose):
 				return m.NewStatusMessage(statusMessageStyle("Added to playlist"))
-
 			case key.Matches(msg, keys.remove):
 				index := m.Index()
 				m.RemoveItem(index)

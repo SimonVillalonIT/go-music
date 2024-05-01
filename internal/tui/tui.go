@@ -19,6 +19,7 @@ type MainModel struct {
 	home   tea.Model
 	config tea.Model
 	help   tea.Model
+	p      *tea.Program
 }
 
 func NewMainModel(state sessionState) *MainModel {

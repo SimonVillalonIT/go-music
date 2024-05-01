@@ -1,11 +1,11 @@
 package custom_list
 
 import (
-	"log"
 	"math"
 
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -18,6 +18,9 @@ var (
 
 	statusMessageStyle = lipgloss.NewStyle().
 				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
+				Render
+	errorMessageStyle = lipgloss.NewStyle().
+				Foreground(lipgloss.AdaptiveColor{Light: "#ff3333", Dark: "#ff3333"}).
 				Render
 )
 
@@ -78,6 +81,7 @@ func NewModel(items []list.Item) Model {
 	musicList.Title = "Songs & Playlists"
 	musicList.Styles.Title = titleStyle
 	musicList.SetShowHelp(false)
+	musicList.SetSpinner(spinner.Dot)
 	musicList.AdditionalFullHelpKeys = func() []key.Binding {
 		return []key.Binding{
 			listKeys.toggleSpinner,
@@ -105,7 +109,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		log.Print("list size:%i, %i", msg.Width, msg.Height)
 		m.width = int(math.Round(float64(msg.Width) * 0.65))
 		m.height = int(math.Round(float64(msg.Height) * 0.8))
 		m.SetSize(m.width, m.height)
@@ -113,7 +116,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.list.FilterState() == list.Filtering {
 			break
 		}
-
 		switch {
 		case key.Matches(msg, m.keys.toggleSpinner):
 			cmd := m.list.ToggleSpinner()
@@ -161,4 +163,12 @@ func (m *Model) SetSize(w, h int) {
 
 func (m *Model) SetItems(items []list.Item) {
 	m.list.SetItems(items)
+}
+
+func (m *Model) StartSpinner() {
+	m.list.StartSpinner()
+}
+
+func (m *Model) StopSpinner() {
+	m.list.StopSpinner()
 }

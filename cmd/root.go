@@ -19,6 +19,8 @@ var RootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		p := tea.NewProgram(tui.NewMainModel(tui.HomeView), tea.WithAltScreen())
 
+        p.SetWindowTitle("Go-Music")
+
 		go services.StartMpv()
 
 		go cmds.SetupConnection(p)

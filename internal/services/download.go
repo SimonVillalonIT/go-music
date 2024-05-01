@@ -3,15 +3,21 @@ package services
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
+	"log"
 	"os"
 	"os/exec"
 	"path"
+
+	"github.com/spf13/viper"
 )
 
 func Download(jsonFile *[]Item, item Item) error {
 	found := false
 	downloadPath := path.Join(viper.GetString(DOWNLOADS_FOLDER), item.Name)
+
+	if _, err := os.Stat(downloadPath + ".mp3"); !os.IsNotExist(err) {
+		return fmt.Errorf("Song already downloaded!")
+	}
 
 	for i, currentPlaylist := range *jsonFile {
 		if item.Name == currentPlaylist.Name {
@@ -23,7 +29,6 @@ func Download(jsonFile *[]Item, item Item) error {
 				(*jsonFile)[i].DownloadPath = downloadPath + ".mp3"
 				found = true
 				break
-
 			}
 		}
 	}
@@ -47,7 +52,7 @@ func Download(jsonFile *[]Item, item Item) error {
 		}
 
 		command = exec.Command("yt-dlp",
-			"--extract-audio",
+			"--extract-audio", "--quiet",
 			"--audio-format", "mp3",
 			"--output", path.Join(downloadPath, "%(title)s.%(ext)s"),
 			item.URL,
@@ -55,19 +60,30 @@ func Download(jsonFile *[]Item, item Item) error {
 	} else {
 		command = exec.Command("yt-dlp",
 			"--extract-audio",
+			"--quiet",
 			"--audio-format", "mp3",
 			"--output", downloadPath+".mp3",
 			item.URL,
 		)
 	}
+	log.Println(command)
 
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
+	devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0666)
+	if err != nil {
+		fmt.Println("Error opening /dev/null:", err)
+		return err
+	}
+	defer devNull.Close()
+
+	command.Stdout = devNull
+	command.Stderr = devNull
 
 	if err := command.Run(); err != nil {
+		log.Println(err)
 		return err
 	}
 	if err := os.WriteFile(viper.GetString(STORE_PATH), updatedData, 0644); err != nil {
+		log.Println(err)
 		return err
 	}
 

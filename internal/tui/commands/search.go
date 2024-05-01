@@ -21,6 +21,10 @@ func SaveCmd(jsonFile *[]services.Item, item services.Item) tea.Cmd {
 		if err != nil {
 			return ErrMsg(err)
 		}
-		return nil
+		return SearchSuccessMsg(true)
 	}
+}
+
+func QuitSearchCmd() tea.Msg {
+	return QuitSearchMsg(true)
 }

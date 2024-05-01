@@ -7,6 +7,8 @@ import (
 
 	"github.com/SimonVillalonIT/music-golang/internal/services"
 	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
+	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -158,8 +160,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case cmds.SearchResultMsg:
 		m.results = msg
 		m.list.SetItems(getItems(msg))
+    case tea.KeyMsg:
+        if key.Matches(msg, constants.Keymap.Quit){
+            commands = append(commands, cmds.QuitSearchCmd)
+        }
 	}
-
 	m.question.Input, cmd = m.question.Input.Update(msg)
 
 	commands = append(commands, cmd)
