@@ -5,8 +5,16 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func SearchCmd(query string) tea.Cmd {
+func SearchCmd(query string, kind string) tea.Cmd {
 	return func() tea.Msg {
+		if kind == "Playlist" {
+			songs, err := services.GetPlaylists(query, 10)
+			if err != nil {
+				return ErrMsg(err)
+			}
+			return SearchResultMsg(songs)
+
+		}
 		songs, err := services.GetSongs(query, 10)
 		if err != nil {
 			return ErrMsg(err)

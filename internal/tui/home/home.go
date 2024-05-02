@@ -98,9 +98,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, constants.Keymap.Search) {
 			m.state = constants.SearchState
 		}
-		if key.Matches(msg, constants.Keymap.Remove) && m.state == constants.PlaylistState {
+		if key.Matches(msg, constants.Keymap.Remove) {
 			if m.isConnected {
-				commands = append(commands, cmds.RemoveCmd(m.conn, m.playlist.GetPosition()))
+				if m.state == constants.PlaylistState {
+					commands = append(commands, cmds.RemoveCmd(m.conn, m.playlist.GetPosition()))
+				}
+				if m.state == constants.ListState {
+					commands = append(commands, cmds.DeleteCmd(&m.jsonFile, m.list.SelectedItem().(services.Item)))
+				}
+
 			}
 		}
 		if key.Matches(msg, constants.Keymap.Play) {
@@ -114,7 +120,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						commands = append(commands, cmds.SaveCmd(&m.jsonFile, current))
 						m.state = constants.ListState
 					} else {
-						commands = append(commands, cmds.SearchCmd(m.search.Answer()))
+						if m.search.GetChoice() != "" {
+							commands = append(commands, cmds.SearchCmd(m.search.GetAnswer(), m.search.GetChoice()))
+						}
 					}
 				}
 			}
@@ -187,7 +195,7 @@ func (m Model) View() string {
 	}
 
 	if m.state == constants.SearchState {
-		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, m.search.View())
+		return lipgloss.Place(m.width, m.height, lipgloss.Center, lipgloss.Center, lipgloss.JoinVertical(lipgloss.Center, m.search.View(), m.help.FullHelpView(constants.SearchKeymap.FullHelp())))
 	}
 
 	if m.state == constants.ListState {
@@ -198,10 +206,22 @@ func (m Model) View() string {
 		list = lipgloss.NewStyle().Border(lipgloss.HiddenBorder()).Render(list)
 	}
 
+	var help string
+
+	if m.state == constants.ListState {
+		help = m.help.FullHelpView(constants.Keymap.FullHelp())
+	}
+	if m.state == constants.SearchState {
+		help = m.help.FullHelpView(constants.SearchKeymap.FullHelp())
+	}
+	if m.state == constants.PlaylistState {
+		help = m.help.FullHelpView(constants.PlaylistKeymap.FullHelp())
+	}
+
 	main := lipgloss.JoinHorizontal(lipgloss.Left, list, playlist)
 
 	page := lipgloss.JoinVertical(lipgloss.Left, main, m.player.View())
-	pageWithHelp := lipgloss.JoinVertical(lipgloss.Left, main, m.player.View(), m.help.FullHelpView(constants.Keymap.FullHelp()))
+	pageWithHelp := lipgloss.JoinVertical(lipgloss.Left, main, m.player.View(), help)
 
 	if m.showHelp {
 		return lipgloss.Place(m.width, m.height, 0, 0, pageWithHelp)

@@ -22,3 +22,5 @@ debug 2024/05/01 00:10:34 /usr/bin/yt-dlp --extract-audio --quiet --audio-format
 debug 2024/05/01 00:20:31 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Shallow Side - From the Bottom (Official Audio).mp3 https://www.youtube.com/watch?v=uT0qh0FG6-Y
 debug 2024/05/01 00:25:26 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/When we were young - Fernando Daniel ( sub. español ).mp3 https://www.youtube.com/watch?v=9thrOeRpAS0
 debug 2024/05/01 00:34:59 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Saint-Saëns Introduction and Rondo Capriccioso, Op.28 - Bomsori Kim 김봄소리.mp3 https://www.youtube.com/watch?v=uuFkm95ts4c
+debug 2024/05/02 10:02:05 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/HABLA TU ESPEJO/%(title)s.%(ext)s https://www.youtube.com/playlist?list=PLjHAKTrRyrBvWA0cHbjpCzJcJbv2a_fBq
+debug 2024/05/02 10:02:57 exit status 1

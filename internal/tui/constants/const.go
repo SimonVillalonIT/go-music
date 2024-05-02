@@ -37,7 +37,7 @@ var ErrStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#bd534b")).Render
 // AlertStyle provides styling for alert messages
 var AlertStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("62")).Render
 
-type KeymapType struct {
+type ListKeymapType struct {
 	Play     key.Binding
 	Pause    key.Binding
 	Move     key.Binding
@@ -52,7 +52,7 @@ type KeymapType struct {
 	Help     key.Binding
 }
 
-var Keymap = KeymapType{
+var Keymap = ListKeymapType{
 	Move: key.NewBinding(
 		key.WithKeys("tab"),
 		key.WithHelp("tab", "move"),
@@ -103,17 +103,93 @@ var Keymap = KeymapType{
 	),
 }
 
-func (k KeymapType) ShortHelp() []key.Binding {
+func (k ListKeymapType) ShortHelp() []key.Binding {
 	return []key.Binding{k.Quit}
 }
 
-func (k KeymapType) FullHelp() [][]key.Binding {
+func (k ListKeymapType) FullHelp() [][]key.Binding {
 	return [][]key.Binding{
 		{k.Play, k.Pause},
 		{k.Next, k.Prev},
 		{k.Download, k.Search}, // second column
 		{k.Plus, k.Minus},
 		{k.Move, k.Remove},
+		{k.Quit, k.Help},
+	}
+}
+
+type PlaylistKeymapType struct {
+	Enter  key.Binding
+	Remove key.Binding
+	Move   key.Binding
+	Help   key.Binding
+	Quit   key.Binding
+}
+
+var PlaylistKeymap = PlaylistKeymapType{
+	Enter: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "play"),
+	),
+	Remove: key.NewBinding(
+		key.WithKeys(" "),
+		key.WithHelp("space", "pause"),
+	),
+	Move: key.NewBinding(
+		key.WithKeys("tab"),
+		key.WithHelp("tab", "move")),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c", "q", "esc"),
+		key.WithHelp("ctrl+c/q", "quit"),
+	),
+	Help: key.NewBinding(
+		key.WithKeys("?"),
+		key.WithHelp("?", "toggle help"),
+	),
+}
+
+func (k PlaylistKeymapType) ShortHelp() []key.Binding {
+	return []key.Binding{k.Quit}
+}
+
+func (k PlaylistKeymapType) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Enter, k.Remove},
+		{k.Move},
+		{k.Quit, k.Help},
+	}
+}
+
+type SearchKeymapType struct {
+	Enter  key.Binding
+	Select key.Binding
+	Back   key.Binding
+	Help   key.Binding
+	Quit   key.Binding
+}
+
+var SearchKeymap = SearchKeymapType{
+	Enter: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "enter"),
+	),
+	Select: key.NewBinding(
+		key.WithKeys(" "),
+		key.WithHelp("space", "select"),
+	),
+	Quit: key.NewBinding(
+		key.WithKeys("ctrl+c", "q", "esc"),
+		key.WithHelp("ctrl+c/q", "quit"),
+	),
+}
+
+func (k SearchKeymapType) ShortHelp() []key.Binding {
+	return []key.Binding{k.Enter}
+}
+
+func (k SearchKeymapType) FullHelp() [][]key.Binding {
+	return [][]key.Binding{
+		{k.Enter, k.Select},
 		{k.Quit, k.Help},
 	}
 }

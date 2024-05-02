@@ -7,6 +7,7 @@ import (
 
 	"github.com/SimonVillalonIT/music-golang/internal/services"
 	"github.com/charmbracelet/bubbles/list"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/viper"
 )
 
@@ -30,6 +31,18 @@ func SearchSongs() ([]services.Item, []list.Item, error) {
 	}
 
 	return jsonFile, items, nil
+}
+
+func DeleteCmd(jsonFile *[]services.Item, item services.Item) tea.Cmd {
+	return func() tea.Msg {
+		err := services.Delete(jsonFile, item)
+
+		if err != nil {
+			return ErrMsg(err)
+		}
+
+		return nil
+	}
 }
 
 func Kill() {
