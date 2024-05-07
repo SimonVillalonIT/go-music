@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/SimonVillalonIT/music-golang/cmd"
-	_ "github.com/SimonVillalonIT/music-golang/cmd/search"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

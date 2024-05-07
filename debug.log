@@ -24,3 +24,5 @@ debug 2024/05/01 00:25:26 /usr/bin/yt-dlp --extract-audio --quiet --audio-format
 debug 2024/05/01 00:34:59 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Saint-Saëns Introduction and Rondo Capriccioso, Op.28 - Bomsori Kim 김봄소리.mp3 https://www.youtube.com/watch?v=uuFkm95ts4c
 debug 2024/05/02 10:02:05 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/HABLA TU ESPEJO/%(title)s.%(ext)s https://www.youtube.com/playlist?list=PLjHAKTrRyrBvWA0cHbjpCzJcJbv2a_fBq
 debug 2024/05/02 10:02:57 exit status 1
+debug 2024/05/06 21:39:43 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Nicki Nicole - Ojos Verdes (Official Video).mp3 https://www.youtube.com/watch?v=2u4wdfTPyks
+debug 2024/05/06 21:41:15 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Habla tu espejo (Album) - Cuarteto de Nos/%(title)s.%(ext)s https://www.youtube.com/playlist?list=PLXr6OD2VxGvm1izzVPOX8yjlKpp9JSEvP

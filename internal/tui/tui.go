@@ -10,8 +10,9 @@ import (
 type sessionState int
 
 const (
-	HomeView   sessionState = iota
-	ConfigView sessionState = 2
+	HomeView = iota
+	ConfigView
+	SearchView
 )
 
 type MainModel struct {
@@ -47,7 +48,7 @@ func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.config = configModel
 		cmd = newCmd
-	case HomeView:
+	default:
 		newHome, newCmd := m.home.Update(msg)
 		homeModel, ok := newHome.(home.Model)
 		if !ok {
@@ -64,8 +65,7 @@ func (m MainModel) View() string {
 	switch m.state {
 	case ConfigView:
 		return m.config.View()
-	case HomeView:
+	default:
 		return m.home.View()
 	}
-	return "No view specified"
 }

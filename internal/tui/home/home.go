@@ -46,7 +46,7 @@ func New() tea.Model {
 }
 
 func (m Model) Init() tea.Cmd {
-	return changeState((*uint)(&m.state))
+	return ChangeState((*uint)(&m.state))
 }
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -87,7 +87,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} else {
 				m.state = constants.ListState
 			}
-			commands = append(commands, changeState((*uint)(&m.state)))
+			commands = append(commands, ChangeState((*uint)(&m.state)))
 		}
 		if key.Matches(msg, constants.Keymap.Quit) {
 			if m.state != constants.SearchState {
@@ -111,6 +111,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		if key.Matches(msg, constants.Keymap.Play) {
 			if m.isConnected {
+				if m.state == constants.PlaylistState {
+					commands = append(commands, cmds.PlayByPos(m.conn, m.playlist.GetPosition()))
+				}
 				if m.state == constants.ListState {
 					commands = append(commands, cmds.PlayCmd(m.conn, m.list.SelectedItem().(services.Item)))
 				}
@@ -230,10 +233,14 @@ func (m Model) View() string {
 	return lipgloss.Place(m.width, m.height, 0, 0, page)
 }
 
-func changeState(state *uint) tea.Cmd {
+func ChangeState(state *uint) tea.Cmd {
 	return func() tea.Msg {
 		return cmds.StateMsg(state)
 	}
+}
+
+func (m *Model) SetState(newState uint) {
+	m.state = constants.SessionState(newState)
 }
 
 func (m *Model) updateData() {
