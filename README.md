@@ -2,7 +2,7 @@
 
 Go-Music is a command-line tool designed to manage your music collection. It allows you to download music from YouTube, organize your tracks, and play them using the powerful MPV media player.
 
-![Go-Music Demo](path/to/your/gif.gif)
+![Go-Music Demo](./example.gif)
 
 ## Features
 
