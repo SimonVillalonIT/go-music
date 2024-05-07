@@ -101,5 +101,9 @@ func (m Model) GetChoice() string {
 
 func (m *Model) ClearData() {
 	m.results = []services.Item{}
+	m.list.SetItems(make([]list.Item, 0))
+	m.question.Answer = ""
+	m.question.Request = ""
+    m.ClearAnswer()
 	m.choice.ClearChoice()
 }

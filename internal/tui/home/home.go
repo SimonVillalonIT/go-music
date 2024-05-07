@@ -121,6 +121,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if m.search.GetLength() > 0 {
 						current := m.search.GetCurrent()
 						commands = append(commands, cmds.SaveCmd(&m.jsonFile, current))
+						m.search.ClearData()
 						m.state = constants.ListState
 					} else {
 						if m.search.GetChoice() != "" {

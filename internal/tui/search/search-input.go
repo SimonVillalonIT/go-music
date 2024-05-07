@@ -60,3 +60,7 @@ func (i *InputField) View() string {
 func (m Model) GetAnswer() string {
 	return m.question.Input.Value()
 }
+
+func (m *Model ) ClearAnswer() {
+    m.question.Input = NewInputField()
+}
