@@ -4,6 +4,11 @@ Go-Music is a command-line tool designed to manage your music collection. It all
 
 ![Go-Music Demo](./example.gif)
 
+## Dependencies
+You should install this in order to use Go-Music:
+- [mpv](https://github.com/mpv-player/mpv)
+- [yt-dlp](https://github.com/yt-dlp/yt-dlp)
+
 ## Features
 
 - Download music from YouTube: Easily download your favorite tracks from YouTube.
