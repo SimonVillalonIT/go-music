@@ -7,13 +7,13 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
-	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
-	fancyList "github.com/SimonVillalonIT/music-golang/internal/tui/list"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/player"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/playlist"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/search"
+	"github.com/SimonVillalonIT/go-music/internal/services"
+	cmds "github.com/SimonVillalonIT/go-music/internal/tui/commands"
+	"github.com/SimonVillalonIT/go-music/internal/tui/constants"
+	fancyList "github.com/SimonVillalonIT/go-music/internal/tui/list"
+	"github.com/SimonVillalonIT/go-music/internal/tui/player"
+	"github.com/SimonVillalonIT/go-music/internal/tui/playlist"
+	"github.com/SimonVillalonIT/go-music/internal/tui/search"
 )
 
 type Model struct {

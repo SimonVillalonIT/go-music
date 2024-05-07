@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/SimonVillalonIT/music-golang/cmd"
+	"github.com/SimonVillalonIT/go-music/cmd"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

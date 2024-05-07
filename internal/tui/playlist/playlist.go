@@ -8,9 +8,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
-	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	"github.com/SimonVillalonIT/go-music/internal/services"
+	cmds "github.com/SimonVillalonIT/go-music/internal/tui/commands"
+	"github.com/SimonVillalonIT/go-music/internal/tui/constants"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

@@ -5,7 +5,7 @@ package cmdhandlers
 // 	"fmt"
 // 	"os"
 //
-// 	"github.com/SimonVillalonIT/music-golang/internal/services"
+// 	"github.com/SimonVillalonIT/go-music/internal/services"
 // 	"github.com/spf13/cobra"
 // 	"github.com/spf13/viper"
 // )

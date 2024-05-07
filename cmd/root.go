@@ -3,9 +3,9 @@ package cmd
 import (
 	"os"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
-	"github.com/SimonVillalonIT/music-golang/internal/tui"
-	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
+	"github.com/SimonVillalonIT/go-music/internal/services"
+	"github.com/SimonVillalonIT/go-music/internal/tui"
+	cmds "github.com/SimonVillalonIT/go-music/internal/tui/commands"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,7 +14,7 @@ import (
 var cfgFile string
 
 var RootCmd = &cobra.Command{
-	Use:   "music-golang",
+	Use:   "go-music",
 	Short: "The music manager built in Golang",
 	Run: func(cmd *cobra.Command, args []string) {
 		p := tea.NewProgram(tui.NewMainModel(tui.HomeView), tea.WithAltScreen())
@@ -40,7 +40,7 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(InitConfig)
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.music-golang.json)")
+	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.go-music.json)")
 	RootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
@@ -52,7 +52,7 @@ func InitConfig() {
 		cobra.CheckErr(err)
 
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".music-golang")
+		viper.SetConfigName(".go-music")
 	}
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {

@@ -51,8 +51,8 @@ func GenerateConfig(downloadFolder, storePath string) error {
 
 	viper.Set(STORE_PATH, storePath)
 
-	err = viper.WriteConfigAs(path.Join(home, ".music-golang.yaml"))
-	viper.SetConfigFile(path.Join(home, ".music-golang.yaml"))
+	err = viper.WriteConfigAs(path.Join(home, ".go-music.yaml"))
+	viper.SetConfigFile(path.Join(home, ".go-music.yaml"))
 
 	return err
 }

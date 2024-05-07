@@ -2,7 +2,7 @@ package cmds
 
 import (
 	"github.com/DexterLB/mpvipc"
-	"github.com/SimonVillalonIT/music-golang/internal/services"
+	"github.com/SimonVillalonIT/go-music/internal/services"
 )
 
 type ConnMsg *mpvipc.Connection

@@ -3,8 +3,8 @@ package player
 import (
 	"fmt"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
-	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
+	"github.com/SimonVillalonIT/go-music/internal/services"
+	cmds "github.com/SimonVillalonIT/go-music/internal/tui/commands"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )

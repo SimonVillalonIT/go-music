@@ -5,7 +5,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
+	"github.com/SimonVillalonIT/go-music/internal/services"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"

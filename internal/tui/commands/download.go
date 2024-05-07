@@ -3,7 +3,7 @@ package cmds
 import (
 	"time"
 
-	"github.com/SimonVillalonIT/music-golang/internal/services"
+	"github.com/SimonVillalonIT/go-music/internal/services"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

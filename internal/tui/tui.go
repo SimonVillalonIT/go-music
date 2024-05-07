@@ -1,9 +1,9 @@
 package tui
 
 import (
-	config "github.com/SimonVillalonIT/music-golang/internal/tui/config"
-	help "github.com/SimonVillalonIT/music-golang/internal/tui/config"
-	home "github.com/SimonVillalonIT/music-golang/internal/tui/home"
+	config "github.com/SimonVillalonIT/go-music/internal/tui/config"
+	help "github.com/SimonVillalonIT/go-music/internal/tui/config"
+	home "github.com/SimonVillalonIT/go-music/internal/tui/home"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

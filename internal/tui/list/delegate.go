@@ -1,8 +1,8 @@
 package custom_list
 
 import (
-	cmds "github.com/SimonVillalonIT/music-golang/internal/tui/commands"
-	"github.com/SimonVillalonIT/music-golang/internal/tui/constants"
+	cmds "github.com/SimonVillalonIT/go-music/internal/tui/commands"
+	"github.com/SimonVillalonIT/go-music/internal/tui/constants"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
