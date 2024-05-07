@@ -13,8 +13,8 @@ import (
 
 type Model struct {
 	question Question
-	choice   choiceModel
 	list     list.Model
+	choice   choiceModel
 	width    int
 	height   int
 	styles   *Styles
@@ -27,7 +27,7 @@ func NewModel() Model {
 	answerField := textinput.New()
 	answerField.Focus()
 	delegate := itemDelegate{}
-    request := NewQuestion("Search here: ", "")
+	request := NewQuestion("Search here: ", "")
 	list := list.New(make([]list.Item, 0), delegate, 80, 20)
 	choice := choiceModel{}
 
@@ -59,15 +59,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	commands = append(commands, cmd)
 
-	m.question.Input, cmd = m.question.Input.Update(msg)
+	if m.choice.choice != "" {
+		m.question.Input, cmd = m.question.Input.Update(msg)
 
-	commands = append(commands, cmd)
+		commands = append(commands, cmd)
 
-	updatedList, cmd := m.list.Update(msg)
+		updatedList, cmd := m.list.Update(msg)
 
-	m.list = updatedList
+		m.list = updatedList
 
-	commands = append(commands, cmd)
+		commands = append(commands, cmd)
+
+	}
 
 	return m, tea.Batch(commands...)
 }
@@ -93,5 +96,10 @@ func (m Model) View() string {
 }
 
 func (m Model) GetChoice() string {
-    return m.choice.choice
+	return m.choice.choice
+}
+
+func (m *Model) ClearData() {
+	m.results = []services.Item{}
+	m.choice.ClearChoice()
 }

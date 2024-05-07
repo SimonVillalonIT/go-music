@@ -57,3 +57,7 @@ func (m choiceModel) View() string {
 
 	return s.String()
 }
+
+func (m *choiceModel) ClearChoice() {
+	m.choice = ""
+}

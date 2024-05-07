@@ -26,3 +26,4 @@ debug 2024/05/02 10:02:05 /usr/bin/yt-dlp --extract-audio --quiet --audio-format
 debug 2024/05/02 10:02:57 exit status 1
 debug 2024/05/06 21:39:43 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Nicki Nicole - Ojos Verdes (Official Video).mp3 https://www.youtube.com/watch?v=2u4wdfTPyks
 debug 2024/05/06 21:41:15 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/Habla tu espejo (Album) - Cuarteto de Nos/%(title)s.%(ext)s https://www.youtube.com/playlist?list=PLXr6OD2VxGvm1izzVPOX8yjlKpp9JSEvP
+debug 2024/05/06 22:33:06 /usr/bin/yt-dlp --extract-audio --quiet --audio-format mp3 --output /home/simonit/Music/t.A.T.u. - All The Things She Said (Official Music Video).mp3 https://www.youtube.com/watch?v=8mGBaXPlri8
