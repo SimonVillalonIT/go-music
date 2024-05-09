@@ -42,8 +42,6 @@ func Download(jsonFile *[]Item, item Item) error {
 		return err
 	}
 
-	var command *exec.Cmd
-
 	if item.Content != nil {
 		err := os.Mkdir(downloadPath, 0700)
 
@@ -51,45 +49,29 @@ func Download(jsonFile *[]Item, item Item) error {
 			return err
 		}
 
-		command = exec.Command("yt-dlp",
-			"--extract-audio",
-			"--quiet",
-			"--no-progress",
-			"-vU",
-			"--audio-format", "mp3",
-			"--output", path.Join(downloadPath, "%(title)s.%(ext)s"),
-			item.URL,
-		)
+		err = downloadYouTubeVideo(item.URL, path.Join(downloadPath, "%(title)s.mp3"))
+		if err != nil {
+			log.Println(err)
+			return err
+		}
+
 	} else {
-		command = exec.Command("yt-dlp",
-			"--extract-audio",
-			"--quiet",
-			"--no-progress",
-			"-vU",
-			"--audio-format", "mp3",
-			"--output", downloadPath+".mp3",
-			item.URL,
-		)
+		err = downloadYouTubeVideo(item.URL, downloadPath+".mp3")
+		if err != nil {
+			log.Println(err)
+			return err
+		}
 	}
 
-	devNull, err := os.OpenFile(os.DevNull, os.O_WRONLY, 0666)
-	if err != nil {
-		fmt.Println("Error opening /dev/null:", err)
-		return err
-	}
-	defer devNull.Close()
-
-	command.Stdout = devNull
-	command.Stderr = devNull
-
-	if err := command.Run(); err != nil {
-		log.Println(err)
-		return err
-	}
 	if err := os.WriteFile(viper.GetString(STORE_PATH), updatedData, 0644); err != nil {
 		log.Println(err)
 		return err
 	}
 
 	return nil
+}
+
+func downloadYouTubeVideo(url string, outputPath string) error {
+    cmd := exec.Command("mpv", "--ytdl-format=best","--no-terminal", "--no-video", "-o", outputPath, url)
+	return cmd.Run()
 }
