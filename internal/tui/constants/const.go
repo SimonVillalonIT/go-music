@@ -70,8 +70,8 @@ var Keymap = ListKeymapType{
 		key.WithHelp("x", "remove"),
 	),
 	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q", "esc"),
-		key.WithHelp("ctrl+c/q", "quit"),
+		key.WithKeys("ctrl+c", "esc"),
+		key.WithHelp("ctrl+c/esc", "quit"),
 	),
 	Pause: key.NewBinding(
 		key.WithKeys(" "),
