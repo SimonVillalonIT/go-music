@@ -128,6 +128,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			log.Print(err)
 		}
+	case tea.KeyMsg:
+		if msg.String() == "q" {
+			return m, nil
+		}
 	}
 	if !m.loaded {
 		return m, nil

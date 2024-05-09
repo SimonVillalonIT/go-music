@@ -53,6 +53,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if key.Matches(msg, constants.Keymap.Quit) {
 			commands = append(commands, cmds.QuitSearchCmd)
 		}
+		if msg.String() == "q" {
+            m.question.Input.SetValue("q")
+			return m, nil
+		}
 	}
 	updatedChoice, cmd := m.choice.Update(msg)
 	m.choice = updatedChoice.(choiceModel)
@@ -104,6 +108,6 @@ func (m *Model) ClearData() {
 	m.list.SetItems(make([]list.Item, 0))
 	m.question.Answer = ""
 	m.question.Request = ""
-    m.ClearAnswer()
+	m.ClearAnswer()
 	m.choice.ClearChoice()
 }

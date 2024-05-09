@@ -89,6 +89,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			commands = append(commands, ChangeState((*uint)(&m.state)))
 		}
+
 		if key.Matches(msg, constants.Keymap.Quit) {
 			if m.state != constants.SearchState {
 				cmds.Kill()

@@ -178,8 +178,8 @@ var SearchKeymap = SearchKeymapType{
 		key.WithHelp("space", "select"),
 	),
 	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q", "esc"),
-		key.WithHelp("ctrl+c/q", "quit"),
+		key.WithKeys("ctrl+c", "esc"),
+		key.WithHelp("ctrl+c", "quit"),
 	),
 }
 

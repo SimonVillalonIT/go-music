@@ -9,20 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-var (
-	titleStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FFFDF5")).
-			Background(lipgloss.Color("#25A065")).
-			Padding(0, 1)
-
-	statusMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{Light: "#04B575", Dark: "#04B575"}).
-				Render
-	errorMessageStyle = lipgloss.NewStyle().
-				Foreground(lipgloss.AdaptiveColor{Light: "#ff3333", Dark: "#ff3333"}).
-				Render
-)
-
 type Model struct {
 	list   list.Model
 	width  int
@@ -50,11 +36,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
+
 	case tea.WindowSizeMsg:
 		m.width = int(math.Round(float64(msg.Width) * 0.65))
 		m.height = int(math.Round(float64(msg.Height) * 0.8))
 		m.SetSize(m.width, m.height)
 	case tea.KeyMsg:
+		if msg.String() == "q" {
+			return m, nil
+		}
 		if m.list.FilterState() == list.Filtering {
 			break
 		}

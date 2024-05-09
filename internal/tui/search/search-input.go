@@ -21,6 +21,7 @@ type Input interface {
 	Blur() tea.Msg
 	Update(tea.Msg) (Input, tea.Cmd)
 	View() string
+	SetValue(string)
 }
 
 type InputField struct {
@@ -37,6 +38,11 @@ func NewInputField() *InputField {
 
 func (i *InputField) Value() string {
 	return i.textinput.Value()
+}
+
+func (i *InputField) SetValue(str string) {
+	i.textinput.SetValue(i.textinput.Value() + str)
+    i.textinput.CursorEnd()
 }
 
 func (i *InputField) Default() string {
@@ -61,6 +67,6 @@ func (m Model) GetAnswer() string {
 	return m.question.Input.Value()
 }
 
-func (m *Model ) ClearAnswer() {
-    m.question.Input = NewInputField()
+func (m *Model) ClearAnswer() {
+	m.question.Input = NewInputField()
 }
