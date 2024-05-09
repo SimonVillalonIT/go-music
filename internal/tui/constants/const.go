@@ -139,8 +139,8 @@ var PlaylistKeymap = PlaylistKeymapType{
 		key.WithKeys("tab"),
 		key.WithHelp("tab", "move")),
 	Quit: key.NewBinding(
-		key.WithKeys("ctrl+c", "q", "esc"),
-		key.WithHelp("ctrl+c/q", "quit"),
+		key.WithKeys("ctrl+c", "esc"),
+		key.WithHelp("ctrl+c/esc", "quit"),
 	),
 	Help: key.NewBinding(
 		key.WithKeys("?"),
